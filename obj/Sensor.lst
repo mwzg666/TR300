@@ -1,0 +1,523 @@
+C251 COMPILER V5.60.0,  Sensor                                                             03/09/24  13:56:03  PAGE 1   
+
+
+C251 COMPILER V5.60.0, COMPILATION OF MODULE Sensor
+OBJECT MODULE PLACED IN .\obj\Sensor.obj
+COMPILER INVOKED BY: D:\KeilMDK\C251\BIN\C251.EXE Hardware\Sensor\Sensor.c XSMALL INTR2 OPTIMIZE(0,SPEED) BROWSE INCDIR(
+                    -.\User;.\Hardware\CalcDoseRate;.\Hardware\Cmd;.\Hardware\Flash;.\Hardware\IIC;.\Hardware\Mcp4725;.\Hardware\Sensor;.\Har
+                    -dware\System;.\Hardware\Uart;.\User;.\Hardware\BatVoltage;.\Hardware\DoseRate;.\Hardware\CalcCps;.\Hardware\CRC;.\Hardwa
+                    -re\Queue) PRINT(.\obj\Sensor.lst) OBJECT(.\obj\Sensor.obj) 
+
+stmt  level    source
+
+    1          #include "Sensor.h"
+    2          #include "CalcDoseRate.h"
+    3          #include "CalcCPS.h"
+    4          #include "DoseRate.h"
+    5          #include "system.h"
+    6          #include "CMD.h"
+    7          
+    8          u8 GDoseSeg = LOW_SEG;       //µ±Ç°´¦ÔÚµÄ¶Î
+    9          u8 Dose_switch = 0;    //µÍÁ¿³Ì¶Î0£º²âÁ¿ÖµÎª¦Ã£¬1£º²âÁ¿ÖµÎª¦Â
+   10          u32 Low_CPS = 0;
+   11          u32 High_CPS = 0;
+   12          static float HightDoseRate;
+   13          static float LowDoseRate;
+   14          
+   15          static float LowSmothCPS,HighSmothCPS;
+   16          static float LowSmothCPS2,HighSmothCPS2;
+   17          
+   18          static float LowNOSmothCPS,HighNOSmothCPS;
+   19          static float LowSumCPS,HighSumCPS;
+   20          
+   21          //¦ÂÊý¾Ý
+   22          static float HSumCPS;
+   23          
+   24          static float SmothCPS_B;
+   25          static float NOSmothCPS_B;
+   26          static float SumCPS_B;
+   27          
+   28          u32 InSenserCnt = 0;
+   29          float OldDr = 0.0;
+   30          float NewDr;
+   31          float RtCps,NewCps;
+   32          float CanshuA,CanshuB,CanshuC,CanshuD;
+   33          void SensorInit(void)
+   34          {
+   35   1          //CanshuA = SysRunState.stParam.s_SysParam.DiYaCanshuA;
+   36   1          //CanshuB = SysRunState.stParam.s_SysParam.DiYaCanshuB;
+   37   1          //CanshuC = SysRunState.stParam.s_SysParam.DiYaCanshuC; 
+   38   1          //CanshuD = 0.0;
+   39   1      
+   40   1          UseSLParam(0);
+   41   1          memset((void*)&SysRunState.s_DoseMSG,0,sizeof(STU_DOSERATE));
+   42   1      }
+   43          
+   44          void SensorMeasureBegin(void)
+   45          { 
+   46   1              Low_CPS = 0;
+   47   1              High_CPS = 0;
+   48   1              //GetCounter();
+   49   1          //GetBataCounter();
+   50   1      }
+   51          
+   52          void UseSLParam(float dr)
+   53          {
+   54   1          if (dr < 8)
+   55   1          {
+   56   2              CanshuA = 1.06581410364015E-14; // SysRunState.stParam.s_SysParam.DiYaCanshuA;
+C251 COMPILER V5.60.0,  Sensor                                                             03/09/24  13:56:03  PAGE 2   
+
+   57   2              CanshuB = 0.291478787484166;     // SysRunState.stParam.s_SysParam.DiYaCanshuB;
+   58   2              CanshuC = 0.0108551044292504; //SysRunState.stParam.s_SysParam.DiYaCanshuC; 
+   59   2              CanshuD = 0.0;
+   60   2          }
+   61   1          else if (dr < 500)
+   62   1          {
+   63   2              CanshuA = -0.358286803618626;
+   64   2              CanshuB = 0.494100392430478;
+   65   2              CanshuC = 9.76367631615528E-05;
+   66   2              CanshuD = 0.0;
+   67   2      
+   68   2          }
+   69   1          else  if (dr < 8000)
+   70   1          {
+   71   2              CanshuA = 125.037524058913;
+   72   2              CanshuB = 0.305815634950024;
+   73   2              CanshuC =  0.000147696929666487;
+   74   2              CanshuD = 0.0;
+   75   2          }
+   76   1          else
+   77   1          {
+   78   2              CanshuA = -1129.62834067371;
+   79   2              CanshuB = 1.44007488389396;
+   80   2              CanshuC =  0.0;
+   81   2              CanshuD = 0.0;
+   82   2          }
+   83   1          
+   84   1          
+   85   1      }
+   86          
+   87          
+   88          void UseSHParam(float dr)
+   89          {
+   90   1          if (dr < 80000)
+   91   1          {
+   92   2              CanshuA = -56.4956084021251;
+   93   2              CanshuB = 33.1391426920277;
+   94   2              CanshuC =  -0.00121629383397334;
+   95   2              CanshuD = 0.0;
+   96   2          }
+   97   1          else
+   98   1          {
+   99   2              CanshuA = -9890.61062326864;
+  100   2              CanshuB = 32.8126304817507;
+  101   2              CanshuC = 0.000275557442490988;
+  102   2              CanshuD = 0.0;
+  103   2          }
+  104   1      }
+  105          
+  106          
+  107          float DrFix(float dr)
+  108          {
+  109   1          float fix = 1.0;
+  110   1          if (dr < 1.0)
+  111   1          {
+  112   2              fix = FloatToSmall(SysRunState.stParam.Fix[0]);
+  113   2          }
+  114   1          else if (dr < 10.0)
+  115   1          {
+  116   2              fix = FloatToSmall(SysRunState.stParam.Fix[1]);
+  117   2          }
+  118   1          else if (dr < 100.0)
+  119   1          {
+  120   2              fix = FloatToSmall(SysRunState.stParam.Fix[2]);
+  121   2          }
+  122   1          else if (dr < 1000.0)
+C251 COMPILER V5.60.0,  Sensor                                                             03/09/24  13:56:03  PAGE 3   
+
+  123   1          {
+  124   2              fix = FloatToSmall(SysRunState.stParam.Fix[3]);
+  125   2          }
+  126   1          else if (dr < 10000.0)
+  127   1          {
+  128   2              fix = FloatToSmall(SysRunState.stParam.Fix[4]);
+  129   2          }
+  130   1          else if (dr < 100000.0)
+  131   1          {
+  132   2              fix = FloatToSmall(SysRunState.stParam.Fix[5]);
+  133   2          }
+  134   1          else if (dr < 1000000.0)
+  135   1          {
+  136   2              fix = FloatToSmall(SysRunState.stParam.Fix[6]);
+  137   2          }
+  138   1          else if (dr < 10000000.0)
+  139   1          {
+  140   2              fix = FloatToSmall(SysRunState.stParam.Fix[7]);
+  141   2          }
+  142   1          else if (dr < 100000000.0)
+  143   1          {
+  144   2              fix = FloatToSmall(SysRunState.stParam.Fix[8]);
+  145   2          }
+  146   1          else if (dr < 1.0E+9) //1000000000.0)
+  147   1          {
+  148   2              fix = FloatToSmall(SysRunState.stParam.Fix[9]);
+  149   2          }
+  150   1          else if (dr < 1.0E+10) // 10000000000.0)
+  151   1          {
+  152   2              fix = FloatToSmall(SysRunState.stParam.Fix[10]);
+  153   2          }
+  154   1      
+  155   1          return (dr*fix);
+  156   1      }
+  157          
+  158          
+  159          
+  160          void CaptureSensorPluseCounter(void)
+  161          {
+  162   1              /**************²âÊÔÓÃµÄ****************************************/
+  163   1              //Low_CPS = 10;
+  164   1              //High_CPS = 10;
+  165   1              /*****************************************************/
+  166   1              
+  167   1              //FilterLow(Low_CPS);
+  168   1              //FilterHigh(High_CPS);
+  169   1              //LowSumCPS += Low_CPS;
+  170   1          float uSvh = 0;
+  171   1      
+  172   1              LowSumCPS = GetCounter();
+  173   1              //HighSumCPS += High_CPS;
+  174   1              HighSumCPS = GetHightCounter();
+  175   1      
+  176   1              if((LowSumCPS == 0)&&(SysRunState.LowChanneloff == 0))
+  177   1              {
+  178   2                      SysRunState.LChannelNoCountTime++;
+  179   2              }
+  180   1              else
+  181   1              {
+  182   2                      SysRunState.LChannelNoCountTime = 0;
+  183   2              }
+  184   1              if(HighSumCPS == 0)
+  185   1              {
+  186   2                      SysRunState.HChannelNoCountTime++;
+  187   2              }
+  188   1              else
+C251 COMPILER V5.60.0,  Sensor                                                             03/09/24  13:56:03  PAGE 4   
+
+  189   1              {
+  190   2                      SysRunState.HChannelNoCountTime = 0;
+  191   2              }
+  192   1          switch(GDoseSeg)
+  193   1          {
+  194   2              case LOW_SEG:
+  195   2              {
+  196   3                  SysRunState.LowChanneloff = 0;
+  197   3                  LowSmothCPS = CalcLow(
+  198   3                              CanshuA, 
+  199   3                              CanshuB, 
+  200   3                              CanshuC,
+  201   3                              LowSumCPS, 
+  202   3                              LowDoseRate,
+  203   3                              &uSvh);
+  204   3                  if (LowSmothCPS != -1)
+  205   3                  {
+  206   4                      uSvh *= SysRunState.stParam.s_Jiaozhun.DI_C;
+  207   4                      LowDoseRate = uSvh;
+  208   4                  }
+  209   3                  UseSLParam(LowDoseRate);
+  210   3                  SysRunState.s_DoseMSG.DoseRate = LowDoseRate;
+  211   3      
+  212   3                  if (SysRunState.s_DoseMSG.DoseRate >= USE_LOW_USV)// &&
+  213   3                        //(SysRunState.s_DoseMSG.C2 >= 30)  ) // È·±£ÊÇÙ¤Âí²ÅÇÐ»»
+  214   3                  {
+  215   4                      GDoseSeg = HIG_SEG;
+  216   4                      ClearCounter();
+  217   4                  }
+  218   3                  break;
+  219   3              }
+  220   2      
+  221   2              case HIG_SEG:
+  222   2              {
+  223   3                  SysRunState.LowChanneloff = 1;
+  224   3                  HighSmothCPS = CalcHigh(
+  225   3                            CanshuA, 
+  226   3                            CanshuB, 
+  227   3                            CanshuC,
+  228   3                            HighSumCPS, 
+  229   3                            HightDoseRate,
+  230   3                            &uSvh);
+  231   3                  if (HighSmothCPS != -1)
+  232   3                  {
+  233   4                      uSvh *= SysRunState.stParam.s_Jiaozhun.GAO_C;
+  234   4                      HightDoseRate = uSvh;
+  235   4                  }
+  236   3                  UseSHParam(HightDoseRate);
+  237   3                  SysRunState.s_DoseMSG.DoseRate = HightDoseRate;
+  238   3      
+  239   3                  if(SysRunState.s_DoseMSG.DoseRate < USE_HIGH_USV)
+  240   3                  {
+  241   4                      GDoseSeg = LOW_SEG;
+  242   4                      ClearCounter();
+  243   4                  }
+  244   3                  break;
+  245   3              }
+  246   2              default: GDoseSeg = LOW_SEG;break;
+  247   2              
+  248   2          }
+  249   1                       
+  250   1              LowNOSmothCPS = LowSumCPS;
+  251   1              HighNOSmothCPS = HighSumCPS;    
+  252   1                      
+  253   1              HighSumCPS = 0;
+  254   1              LowSumCPS = 0;
+C251 COMPILER V5.60.0,  Sensor                                                             03/09/24  13:56:03  PAGE 5   
+
+  255   1              
+  256   1              /*if(SysRunState.s_DoseMSG.C1 > 1)
+  257   1              {
+  258   1                      //¼ÁÁ¿ÂÊ´óÓÚ1£¬Í£Ö¹
+  259   1                      LowSumCPS = 0;
+  260   1              }*/
+  261   1              
+  262   1              SysRunState.s_CPS.CPS1 = LowNOSmothCPS;
+  263   1              SysRunState.s_CPS.CPS2 = HighNOSmothCPS;
+  264   1      
+  265   1      
+  266   1          SysRunState.s_DoseMSG.DoseRate = DrFix(SysRunState.s_DoseMSG.DoseRate);
+  267   1              SysRunState.s_DoseMSG.Dose += SysRunState.s_DoseMSG.DoseRate/3600.0f;
+  268   1              
+  269   1      //      if(SysRunState.s_DoseMSG.DoseRate>SysRunState.s_DoseMSG.MaxDoseRate)
+  270   1      //      {
+  271   1      //              SysRunState.s_DoseMSG.MaxDoseRate = SysRunState.s_DoseMSG.DoseRate;
+  272   1      //      }
+  273   1          
+  274   1              CalcAlarmState(&SysRunState);           
+  275   1      
+  276   1      }
+  277          
+  278          float Get_Low_Counter(void)
+  279          {
+  280   1              return LowNOSmothCPS;
+  281   1      }
+  282          
+  283          float Get_High_Counter(void)
+  284          {
+  285   1              return HighNOSmothCPS;
+  286   1      }
+  287          
+  288          float Get_Low_Smooth_Counter(void)
+  289          {
+  290   1              return LowSmothCPS;
+  291   1      }
+  292          
+  293          float Get_High_Smooth_Counter(void)
+  294          {
+  295   1              return HighSmothCPS;
+  296   1      }
+  297          #if 0
+               u16 CalcAlarmState(LP_SYSTEM_STTAE *me)
+               {
+               #if 0
+                       /* ¼ÁÁ¿µ±Á¿±¨¾¯¼ì²é */  
+                       if ((me->s_DoseMSG.Dose >= me->stParam.s_Alarm.DoseAlarm)&&(me->stParam.s_Alarm.DoseAlarm > 0)) 
+                       { 
+                               me->s_DoseMSG.DoSt = 2;
+                   } 
+                       /* ¼ÁÁ¿µ±Á¿Ô¤¾¯¼ì²é */  
+                       else if((me->s_DoseMSG.Dose >= me->stParam.s_Alarm.DosePreAlarm)&&(me->stParam.s_Alarm.DosePreAlarm > 0)
+             -) 
+                       { 
+                               me->s_DoseMSG.DoSt = 1;
+                   } 
+               #endif
+                       
+                       //U16 alarmState = me->Alarmstate&BATTARY_LOW_BIT;
+                       if(me->s_DoseMSG.DoseRate >= 9999999)//10SvÒÔÉÏÔòÊÇ¹ýÔØ±¨¾¯
+                       {
+                               me->s_DoseMSG.DoseRate = 9999999;
+                               me->s_DoseMSG.State = 5;
+                               return true;
+                       }
+C251 COMPILER V5.60.0,  Sensor                                                             03/09/24  13:56:03  PAGE 6   
+
+                       
+                       /* ¼ÁÁ¿µ±Á¿ÂÊ±¨¾¯¼ì²é */        
+                       if ((me->s_DoseMSG.DoseRate >= me->stParam.s_Alarm.DoseRateAlarm)&&(me->stParam.s_Alarm.DoseRateAlarm > 
+             -0)) 
+                       { 
+                               if((++me->DoseRateAlarmCnt) >= MIB_CST_DOSERATE_THRESHOLD_ALARM) {//Á¬ÐøÁ½´Î±¨¾¯ÔòÈÏÎª±¨¾¯
+                                       me->s_DoseMSG.State = 2;
+                                       return true;
+                               }
+                   } else {
+                               me->DoseRateAlarmCnt= 0x0;
+                               me->s_DoseMSG.State = 0;
+                       }
+                       
+                       /* ¼ÁÁ¿µ±Á¿ÂÊÔ¤¾¯¼ì²é */        
+                       if ((me->s_DoseMSG.DoseRate >= me->stParam.s_Alarm.DoseRatePreAlarm)&&(me->s_DoseMSG.DoseRate < me->stPa
+             -ram.s_Alarm.DoseRateAlarm))
+                       { 
+                               if((++me->DoseRatePreAlarmCnt) >= MIB_CST_DOSERATE_THRESHOLD_WARNING) {//Á¬ÐøÁ½´Î±¨¾¯ÔòÈÏÎª±¨¾¯
+                                       me->s_DoseMSG.State = 1;
+                                       return true;
+                               }
+                   } else {
+                               me->DoseRatePreAlarmCnt= 0x0;
+                               me->s_DoseMSG.State = 0;
+                       }
+                       
+                       //if((SysRunState.LChannelNoCountTime>60)&&(SysRunState.HChannelNoCountTime>1200))//µÍÍ¨µÀ1·ÖÖÓÎÞÊý¾Ý£¬¸
+             -ßÍ¨µÀ10·ÖÖÓÎÞÊý¾ÝÔò±¨Ë«Ì½²âÆ÷Òì³£
+                       //{
+                       //      me->s_DoseMSG.DRSt = 8;
+                       //}
+                       //else 
+                   if(SysRunState.LChannelNoCountTime>60)//µÍÍ¨µÀ1·ÖÖÓÎÞÊý¾Ý,Ì½²âÆ÷Òì³£
+                       {
+                               me->s_DoseMSG.State = 6;
+                       }
+                       //else if(SysRunState.HChannelNoCountTime>1200)//¸ßÍ¨µÀ20·ÖÖÓÎÞÊý¾Ý,Ì½²âÆ÷Òì³£
+                       //{
+                               //me->s_DoseMSG.DRSt = 7;
+                       //}
+                       else
+                       {
+                               me->s_DoseMSG.State = 0;
+                       }
+                       return true;
+               }
+               #endif
+  365          
+  366          u16 CalcAlarmState(LP_SYSTEM_STTAE *me)
+  367          {
+  368   1          float ov;
+  369   1          
+  370   1          #if 1
+  371   1          /* ¼ÁÁ¿µ±Á¿±¨¾¯¼ì²é */    
+  372   1          if ((me->s_DoseMSG.Dose >= me->stParam.s_Alarm.DoseAlarm)
+  373   1              &&(me->stParam.s_Alarm.DoseAlarm > 0)) 
+  374   1          { 
+  375   2              me->s_DoseMSG.State |= DOSE_ALARM_BIT;
+  376   2          } 
+  377   1          else
+  378   1          {
+  379   2              me->s_DoseMSG.State &= ~DOSE_ALARM_BIT;
+  380   2          }
+  381   1          
+  382   1          /* ¼ÁÁ¿µ±Á¿Ô¤¾¯¼ì²é */    
+C251 COMPILER V5.60.0,  Sensor                                                             03/09/24  13:56:03  PAGE 7   
+
+  383   1          if( (me->s_DoseMSG.Dose >= me->stParam.s_Alarm.DosePreAlarm)
+  384   1              &&(me->stParam.s_Alarm.DosePreAlarm > 0)
+  385   1              &&(me->s_DoseMSG.Dose < me->stParam.s_Alarm.DoseAlarm) ) 
+  386   1          { 
+  387   2              me->s_DoseMSG.State |= DOSE_PRE_ALARM_BIT;
+  388   2          } 
+  389   1          else
+  390   1          {
+  391   2              me->s_DoseMSG.State &= ~DOSE_PRE_ALARM_BIT;
+  392   2          }
+  393   1          #endif    
+  394   1          
+  395   1          /* ¼ÁÁ¿µ±Á¿ÂÊ±¨¾¯¼ì²é */    
+  396   1          if ( (me->s_DoseMSG.DoseRate >= me->stParam.s_Alarm.DoseRateAlarm)
+  397   1              &&(me->stParam.s_Alarm.DoseRateAlarm > 0) ) 
+  398   1          { 
+  399   2              if((++me->DoseRateAlarmCnt) >= MIB_CST_DOSERATE_THRESHOLD_ALARM) 
+  400   2              {   
+  401   3                  //Á¬ÐøÁ½´Î±¨¾¯ÔòÈÏÎª±¨¾¯
+  402   3                  me->s_DoseMSG.State |= DOSERATE_ALARM_BIT;
+  403   3              }
+  404   2          } 
+  405   1          else 
+  406   1          {
+  407   2              me->DoseRateAlarmCnt= 0x0;
+  408   2              me->s_DoseMSG.State &= ~DOSERATE_ALARM_BIT;
+  409   2          }
+  410   1          
+  411   1          /* ¼ÁÁ¿µ±Á¿ÂÊÔ¤¾¯¼ì²é */    
+  412   1          if ( (me->s_DoseMSG.DoseRate >= me->stParam.s_Alarm.DoseRatePreAlarm)
+  413   1              &&(me->s_DoseMSG.DoseRate < me->stParam.s_Alarm.DoseRateAlarm) )
+  414   1          { 
+  415   2              if((++me->DoseRatePreAlarmCnt) >= MIB_CST_DOSERATE_THRESHOLD_WARNING) 
+  416   2              {
+  417   3                  //Á¬ÐøÁ½´Î±¨¾¯ÔòÈÏÎª±¨¾¯
+  418   3                  me->s_DoseMSG.State |= DOSERATE_PRE_ALARM_BIT;
+  419   3              }
+  420   2          } 
+  421   1          else 
+  422   1          {
+  423   2              me->DoseRatePreAlarmCnt= 0x0;
+  424   2              me->s_DoseMSG.State &= ~DOSERATE_PRE_ALARM_BIT;
+  425   2          }
+  426   1      
+  427   1          
+  428   1          // ¹ýÔØ
+  429   1          if (GDoseSeg == LOW_SEG) 
+  430   1          {
+  431   2              // µ¥GM¹Ü
+  432   2              ov = 200.0*1000;
+  433   2          }
+  434   1          else
+  435   1          {
+  436   2              ov = 10.0*1000*1000;
+  437   2          }
+  438   1          
+  439   1          if ((me->s_DoseMSG.Dose >= 10.0*1000*1000)||(me->s_DoseMSG.DoseRate >= ov))
+  440   1          {
+  441   2              me->s_DoseMSG.State |= OVER_RANGE_BIT;
+  442   2              me->s_DoseMSG.DoseRate = ov;
+  443   2          }
+  444   1          else
+  445   1          {
+  446   2              me->s_DoseMSG.State &= ~OVER_RANGE_BIT;
+  447   2          }
+  448   1          
+C251 COMPILER V5.60.0,  Sensor                                                             03/09/24  13:56:03  PAGE 8   
+
+  449   1          if(((SysRunState.LChannelNoCountTime > 60)&&(GDoseSeg == LOW_SEG))
+  450   1            ||(SysRunState.LChannelNoCountTime > 600))//1·ÖÖÓÎÞÊý¾Ý,Ì½²âÆ÷Òì³£
+  451   1          {
+  452   2              me->s_DoseMSG.State |= LOW_BACK_BIT;
+  453   2          }
+  454   1          else
+  455   1          {
+  456   2              me->s_DoseMSG.State &= ~LOW_BACK_BIT;
+  457   2          }
+  458   1          
+  459   1          if(me->s_CPS.State != me->s_DoseMSG.State)//±¨¾¯ÐÅÏ¢·¢Éú±ä»¯Ôò£¬ÖØÆô·äÃùÆ÷±¨¾¯
+  460   1          {
+  461   2              SysRunState.keyValue = 0;
+  462   2          }
+  463   1          
+  464   1          me->s_CPS.State = me->s_DoseMSG.State;
+  465   1          return true;
+  466   1      }
+  467          
+  468          
+  469          
+
+
+Module Information          Static   Overlayable
+------------------------------------------------
+  code size            =      1976     ------
+  ecode size           =    ------     ------
+  data size            =    ------     ------
+  idata size           =    ------     ------
+  pdata size           =    ------     ------
+  xdata size           =    ------     ------
+  xdata-const size     =    ------     ------
+  edata size           =       130     ------
+  bit size             =    ------     ------
+  ebit size            =    ------     ------
+  bitaddressable size  =    ------     ------
+  ebitaddressable size =    ------     ------
+  far data size        =    ------     ------
+  huge data size       =    ------     ------
+  const size           =    ------     ------
+  hconst size          =        42     ------
+End of Module Information.
+
+
+C251 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
