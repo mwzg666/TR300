@@ -148,7 +148,7 @@ void SendData(uint8_t cmd, uint8_t *cdata, uint8_t length)
    sprintf((char*)&SendBuf[length+sizeof(STU_CMD)],"%02X",sumCheck);
    SendBuf[length+sizeof(STU_CMD)+2] = 3;
    
-   Uart_send(SendBuf,(u8)(length+8));
+   uart485_send(SendBuf,(u8)(length+8));
 
     
 //	crc = CRC16(snedbuf,length+sizeof(STU_CMD));
@@ -177,7 +177,6 @@ void ReadFix()
 void WriteFix(BYTE *dat)
 {
     memcpy((uint8_t*)&SysRunState.stParam.Fix,dat,sizeof(float)*FIX_COUNT);
-    
     SendData(CMD_WRITE_FIX,NULL,0);
     SaveParam();
 }
@@ -407,7 +406,6 @@ void ACK_CMD_V(void)
     gs_Dose.PULSE1 = DwordToSmall(SysRunState.s_CPS.CPS1);
     gs_Dose.PULSE2 = DwordToSmall(SysRunState.s_CPS.CPS2);
     gs_Dose.PULSE3 = 0;
-    
 	SendData('V',(uint8_t*)&gs_Dose,sizeof(STU_DOSERATE));
 }
 

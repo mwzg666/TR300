@@ -14,7 +14,7 @@
 
 //#define ZGC_DOSE
 
-#define P2P_NH         // 点对点拟合 --   暂时只支持单GM管探头
+//#define P2P_NH         // 点对点拟合 --   暂时只支持单GM管探头
 
 //定义软件版本号 3.0.5开始使用新蓝牙模块
 #define VERSION1 3
@@ -61,7 +61,7 @@ typedef 	unsigned long	u32;
 #define HEAD   0x02
 #define TAIL   0x03
 
-#define VERSION "V1.0.0"    //最长6个字节
+#define VERSION "V1.0.2"    //最长6个字节
    
 #define SENSOR_TYPE   0x11                   //TR300探头
 #define POWER_OFF_TIME   (5*60*10)

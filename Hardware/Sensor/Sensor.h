@@ -32,7 +32,9 @@ extern float CanshuD;
 void SensorInit(void);
 void SensorMeasureBegin(void);
 void CaptureSensorPluseCounter(void);
-void UseSLParam(float dr);
+void UseSLParam(float cps);
+void UseSHParam(float cps);
+
 float Get_Low_Smooth_Counter(void);
 float Get_High_Smooth_Counter(void);
 float Get_Low_Counter(void);

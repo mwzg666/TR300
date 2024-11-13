@@ -7,8 +7,8 @@ u32  Pluse3Cnt = 0;
 u32  Pluse4Cnt = 0;
 u16  IDLCnt = 0;
 
-u8   LowOverFlowCnt3 = 0;
-u8   HightOverFlowCnt4 = 0;
+u8   LowOverCnt3 = 0;
+u8   HighOverCnt4 = 0;
 
 void SysInit()
 {
@@ -28,26 +28,14 @@ void SysInit()
 // 当前作者:
 // 其他备注: 
 //========================================================================
-void Timer0_Init(void)		//100毫秒@6MHz
+void Timer0_Init(void)		//10毫秒@11MHz
 {
-//	AUXR &= 0x7F;			//定时器时钟12T模式----6MHz
-//	TMOD &= 0xF0;			//设置定时器模式
-//	TL0 = 0x78;				//设置定时初始值——6MHz_10ms
-//	TH0 = 0xEC;				//设置定时初始值
-
-//    TL0 = 0xB0;				//设置定时初始值——6MHz_100ms
-//	TH0 = 0x3C;				//设置定时初始值
-    
-//	TF0 = 0;				//清除TF0标志
-//	TR0 = 1;				//定时器0开始计时
-//	ET0 = 1;				//使能定时器0中断
-
-
-    AUXR |= 0x00;    //Timer0 set as 12T, 16 bits timer auto-reload, _11MHz_10ms
+    AUXR = 0x00;    //Timer0 set as 12T, 16 bits timer auto-reload, 
     TH0 = (u8)(Timer0_Reload / 256);
     TL0 = (u8)(Timer0_Reload % 256);
     ET0 = 1;    //Timer0 interrupt enable
-    TR0 = 1;    //Tiner0 run   
+    TR0 = 1;    //Tiner0 run
+    
     // 中断优先级3
     PT0  = 0;
     PT0H = 0;
@@ -69,7 +57,7 @@ void Timer3_Init(void)
     T3L = 0x00;
     T3H = 0x00;
     T4T3M = 0x0C;
-    IE2 = 0x20;             //Timer3 interrupt enable
+    IE2 |= 0x20;             //Timer3 interrupt enable
 }
 
 
@@ -127,27 +115,27 @@ void Timer1_Init(void)		//10毫秒@11.0592MHz
 u32 GetCounter(void)
 {
   	u32 Return = 0;
-    Pluse3Cnt =((u32)LowOverFlowCnt3*65536) | (u32)((u32)T3H*256+T3L) ;
+    Pluse3Cnt =((u32)LowOverCnt3*65536) | (u32)((u32)T3H*256+T3L) ;
     Return =Pluse3Cnt;
     T3R = 0;
     T3H = 0;
     T3L = 0;
     T3R = 1;
-    LowOverFlowCnt3 = 0;
+    LowOverCnt3 = 0;
 	Pluse3Cnt = 0;
 	return Return;
 }
 u32 GetHightCounter(void)
 {
   	u32 Return = 0;
-    Pluse4Cnt = ((u32)HightOverFlowCnt4*65536) | (u32)((u32)T4H*256+T4L) ;
+    Pluse4Cnt = ((u32)HighOverCnt4*65536) | (u32)((u32)T4H*256+T4L) ;
     Return = Pluse4Cnt;
 
     T4R = 0;
     T4H = 0;
     T4L = 0;
     T4R = 1;
-    HightOverFlowCnt4 = 0;
+    HighOverCnt4 = 0;
 	Pluse4Cnt = 0;
 	return Return;
 }
@@ -161,13 +149,13 @@ void Timer0_Isr (void) interrupt 1   //Timer0中断
 
 void Timer3_Isr() interrupt 19      //Timer3中断
 {
-    LowOverFlowCnt3++;
+    LowOverCnt3++;
    
 }
 
 void Timer4_Isr() interrupt 20      //Timer4中断
 {
-    HightOverFlowCnt4++;
+    HighOverCnt4++;
    
 }
 

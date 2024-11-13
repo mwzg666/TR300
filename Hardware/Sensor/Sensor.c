@@ -49,45 +49,50 @@ void SensorMeasureBegin(void)
     //GetBataCounter();
 }
 
-void UseSLParam(float dr)
+void UseSLParam(float cps)
 {
-    if (dr < 8)
+    if (cps <= 14.71)
     {
-        CanshuA = 1.06581410364015E-14; // SysRunState.stParam.s_SysParam.DiYaCanshuA;
-        CanshuB = 0.291478787484166;     // SysRunState.stParam.s_SysParam.DiYaCanshuB;
-        CanshuC = 0.0108551044292504; //SysRunState.stParam.s_SysParam.DiYaCanshuC; 
-        CanshuD = 0.0;
+        CanshuA = 9.76996261670138E-15;
+        CanshuB = 0.416404571866349;
+        CanshuC = 0.00866370841409324;
+        CanshuD = 0;
     }
-    else if (dr < 500)
+    else if (cps <= 1220.8)
     {
-        CanshuA = -0.358286803618626;
-        CanshuB = 0.494100392430478;
-        CanshuC = 9.76367631615528E-05;
-        CanshuD = 0.0;
-
+        CanshuA  = 0.0167463070762324;
+        CanshuB  = 0.541654614387292;
+        CanshuC = 7.14371777215714E-05;
+        CanshuD = 1.77334918007136E-08;
     }
-    else  if (dr < 8000)
+    else if (cps <= 8561.06)
     {
-        CanshuA = 125.037524058913;
-        CanshuB = 0.305815634950024;
-        CanshuC =  0.000147696929666487;
-        CanshuD = 0.0;
+        CanshuA  = -679.93211770926;
+        CanshuB  = 1.24525771071468;
+        CanshuC = -2.70261510263897E-05;
+        CanshuD = 0;
+    }
+    else if (cps <= 11310.53)
+    {
+        CanshuA  = -211604.529633801;
+        CanshuB  = 35.7075232732049;
+        CanshuC = -0.00117461680924023;
+        CanshuD = 0;
     }
     else
     {
-        CanshuA = -1129.62834067371;
-        CanshuB = 1.44007488389396;
-        CanshuC =  0.0;
-        CanshuD = 0.0;
+       CanshuA  = -121190.506249211;
+       CanshuB  = 14.4281926885134;
+       CanshuC = 0;
+       CanshuD = 0;
     }
-    
     
 }
 
 
-void UseSHParam(float dr)
+void UseSHParam(float cps)
 {
-    if (dr < 80000)
+    if (cps < 2679.23)
     {
         CanshuA = -56.4956084021251;
         CanshuB = 33.1391426920277;
@@ -203,10 +208,11 @@ void CaptureSensorPluseCounter(void)
                         &uSvh);
             if (LowSmothCPS != -1)
             {
-                uSvh *= SysRunState.stParam.s_Jiaozhun.DI_C;
+                uSvh *= SysRunState.stParam.s_SysParam.Canshu1;
                 LowDoseRate = uSvh;
             }
-            UseSLParam(LowDoseRate);
+            //SysRunState.stParam.s_SysParam.Canshu1 = SysRunState.stParam.s_Jiaozhun.DI_C;
+            UseSLParam(LowSmothCPS);
             SysRunState.s_DoseMSG.DoseRate = LowDoseRate;
 
             if (SysRunState.s_DoseMSG.DoseRate >= USE_LOW_USV)// &&
@@ -230,10 +236,11 @@ void CaptureSensorPluseCounter(void)
                       &uSvh);
             if (HighSmothCPS != -1)
             {
-                uSvh *= SysRunState.stParam.s_Jiaozhun.GAO_C;
+                uSvh *= SysRunState.stParam.s_SysParam.Canshu2;
                 HightDoseRate = uSvh;
             }
-            UseSHParam(HightDoseRate);
+            //SysRunState.stParam.s_SysParam.Canshu2 = SysRunState.stParam.s_Jiaozhun.GAO_C;
+            UseSHParam(HighSmothCPS);
             SysRunState.s_DoseMSG.DoseRate = HightDoseRate;
 
             if(SysRunState.s_DoseMSG.DoseRate < USE_HIGH_USV)
@@ -261,7 +268,6 @@ void CaptureSensorPluseCounter(void)
 	
 	SysRunState.s_CPS.CPS1 = LowNOSmothCPS;
 	SysRunState.s_CPS.CPS2 = HighNOSmothCPS;
-
 
     SysRunState.s_DoseMSG.DoseRate = DrFix(SysRunState.s_DoseMSG.DoseRate);
 	SysRunState.s_DoseMSG.Dose += SysRunState.s_DoseMSG.DoseRate/3600.0f;

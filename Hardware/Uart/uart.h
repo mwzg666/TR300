@@ -40,7 +40,7 @@ void Uart1_Init(void);
 void Uart3_Init(void);
 void uart485_send(u8 *buf, u8 len);
 void Uart_send(u8 *buf, u8 len);
-void Uart3Hnd();
+void Uart3Hnd(void);
 void ClearRs485Buf();
 void ClearUartBuf();
 

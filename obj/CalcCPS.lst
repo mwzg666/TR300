@@ -1,4 +1,4 @@
-C251 COMPILER V5.60.0,  CalcCPS                                                            03/09/24  13:56:03  PAGE 1   
+C251 COMPILER V5.60.0,  CalcCPS                                                            12/11/24  09:53:27  PAGE 1   
 
 
 C251 COMPILER V5.60.0, COMPILATION OF MODULE CalcCPS
@@ -66,7 +66,7 @@ stmt  level    source
    54          
    55          //static S_BENDI gs_AlphaBendi,gs_BetaBendi;
    56          
-C251 COMPILER V5.60.0,  CalcCPS                                                            03/09/24  13:56:03  PAGE 2   
+C251 COMPILER V5.60.0,  CalcCPS                                                            12/11/24  09:53:27  PAGE 2   
 
    57          //static void Filter(squlink FilterQ, squlink CalcQ, unsigned long nNewCnt);
    58          #ifdef ZGC_DOSE
@@ -134,7 +134,7 @@ stmt  level    source
                {
                    //InitQueue(&stAlphaQ, (CPS_BUF_SIZE));
                    InitQueue(&stAlphaCPSAvgQ, (CPS_AVG_BUG_SIZE-1));
-C251 COMPILER V5.60.0,  CalcCPS                                                            03/09/24  13:56:03  PAGE 3   
+C251 COMPILER V5.60.0,  CalcCPS                                                            12/11/24  09:53:27  PAGE 3   
 
                }
                
@@ -167,10 +167,10 @@ stmt  level    source
   150   1          if (CPS != -1)
   151   1          {
   152   2              #ifdef P2P_NH
-  153   2              *NewuSvh = CpsToUsv_h(NhParamL, CPS);
-  154   2              #else
-                       *NewuSvh = CpsToUsv_h(parama, paramb, paramc, CPS);
-                       #endif
+                       *NewuSvh = CpsToUsv_h(NhParamL, CPS);
+                       #else
+  155   2              *NewuSvh = CpsToUsv_h(parama, paramb, paramc, CPS);
+  156   2              #endif
   157   2          }
   158   1          #endif
   159   1          /*if(*NewuSvh > 1)
@@ -179,9 +179,6 @@ stmt  level    source
   162   1              }*/
   163   1          return CPS;
   164   1      }
-*** WARNING C47 IN LINE 142 OF Hardware\CalcCps\CalcCPS.c: 'parama': unreferenced parameter
-*** WARNING C47 IN LINE 142 OF Hardware\CalcCps\CalcCPS.c: 'paramb': unreferenced parameter
-*** WARNING C47 IN LINE 142 OF Hardware\CalcCps\CalcCPS.c: 'paramc': unreferenced parameter
 *** WARNING C47 IN LINE 142 OF Hardware\CalcCps\CalcCPS.c: 'OlduSvh': unreferenced parameter
   165          
   166          #ifdef ZGC_DOSE
@@ -202,11 +199,11 @@ stmt  level    source
                    InitQueue(&stBetaCPSAvgQ, (CPS_AVG_BUG_SIZE-1));
                }
                
-C251 COMPILER V5.60.0,  CalcCPS                                                            03/09/24  13:56:03  PAGE 4   
-
                void EmtyCalcHighQ(void)
                {
                    //InitQueue(&stBetaQ, (CPS_BUF_SIZE));
+C251 COMPILER V5.60.0,  CalcCPS                                                            12/11/24  09:53:27  PAGE 4   
+
                    InitQueue(&stBetaCPSAvgQ, (CPS_AVG_BUG_SIZE-1));
                }
                #endif
@@ -223,17 +220,14 @@ stmt  level    source
   200   1          if (CPS != -1)
   201   1          {
   202   2              #ifdef P2P_NH
-  203   2              *NewuSvh = CpsToUsv_h(NhParamH, CPS);
-  204   2              #else
-                       *NewuSvh = CpsToUsv_h(parama, paramb, paramc, CPS);
-                       #endif
+                       *NewuSvh = CpsToUsv_h(NhParamH, CPS);
+                       #else
+  205   2              *NewuSvh = CpsToUsv_h(parama, paramb, paramc, CPS);
+  206   2              #endif
   207   2          }
   208   1          #endif
   209   1          return CPS;
   210   1      }
-*** WARNING C47 IN LINE 192 OF Hardware\CalcCps\CalcCPS.c: 'parama': unreferenced parameter
-*** WARNING C47 IN LINE 192 OF Hardware\CalcCps\CalcCPS.c: 'paramb': unreferenced parameter
-*** WARNING C47 IN LINE 192 OF Hardware\CalcCps\CalcCPS.c: 'paramc': unreferenced parameter
 *** WARNING C47 IN LINE 192 OF Hardware\CalcCps\CalcCPS.c: 'OlduSvh': unreferenced parameter
   211          
   212          
@@ -270,14 +264,14 @@ stmt  level    source
                
                
                    if(OlduSvh < 0.5)
-C251 COMPILER V5.60.0,  CalcCPS                                                            03/09/24  13:56:03  PAGE 5   
-
                    {
                        OlduSvh = 0.5;
                    }
                    bendi->OlduSvh6 = bendi->OlduSvh5;
                    bendi->OlduSvh5 = bendi->OlduSvh4;
                    bendi->OlduSvh4 = bendi->OlduSvh3;
+C251 COMPILER V5.60.0,  CalcCPS                                                            12/11/24  09:53:27  PAGE 5   
+
                    bendi->OlduSvh3 = bendi->OlduSvh2;
                    bendi->OlduSvh2 = OlduSvh;
                    //CPS = SumRear(Q, Cnt);
@@ -338,14 +332,14 @@ stmt  level    source
                                        bendi->cps = ave*Cnt;
                            return ave;     
                        }
-C251 COMPILER V5.60.0,  CalcCPS                                                            03/09/24  13:56:03  PAGE 6   
-
                    }
                    else
                    {
                        bendi->updownTimes = 0;
                    }
                
+C251 COMPILER V5.60.0,  CalcCPS                                                            12/11/24  09:53:27  PAGE 6   
+
                    if(Cnt >= 3)
                    {
                        ave = SumRear(avgQ, 3)/3;//前3秒平均值
@@ -406,14 +400,14 @@ stmt  level    source
                        }
                        else if(((100.0*(bendi->OlduSvh5 - realTimeCPSuSvh)/(realTimeCPSuSvh+0.1)) > 50)/*&&(bendi->OlduS
              -vh5 >= 1)*/)//下降
-C251 COMPILER V5.60.0,  CalcCPS                                                            03/09/24  13:56:03  PAGE 7   
-
                        {
                            bendi->down30++;
                            bendi->startFlashFlag = 1;
                        }
                        else if(((100.0*(bendi->OlduSvh5 - realTimeCPSuSvh)/(realTimeCPSuSvh+0.1)) > 28)&&(bendi->OlduSvh
              -5 >= 3))//下降
+C251 COMPILER V5.60.0,  CalcCPS                                                            12/11/24  09:53:27  PAGE 7   
+
                        {
                            bendi->startFlashFlag = 1;
                            if(bendi->down30 > 0)
@@ -474,14 +468,14 @@ stmt  level    source
                            ave = SumRear(avgQ, 5)/5;//前5秒平均值
                            uSvh = CpsToUsv_h(parama, paramb, paramc, ave);
                                        tempuSvh = uSvh;
-C251 COMPILER V5.60.0,  CalcCPS                                                            03/09/24  13:56:03  PAGE 8   
-
                                        if(tempuSvh < 0.5)
                                        {
                                                tempuSvh = 0.5;
                                        }
                                        if((((100*(tempuSvh-bendi->OlduSvh5)/(bendi->OlduSvh5+0.1) > 35))&&(bendi->OlduSvh5 > 10))//10u
                                ||(((100*(bendi->OlduSvh5 - tempuSvh)/(bendi->OlduSvh5+0.1) > 35))&&(bendi->OlduSvh5 > 10
+C251 COMPILER V5.60.0,  CalcCPS                                                            12/11/24  09:53:27  PAGE 8   
+
              -)))//波动大于上次平均的30%，用前5秒的数据
                            {
                                SetQLength(avgQ, 5);
@@ -542,14 +536,14 @@ stmt  level    source
                                                        bendi->time = 5;
                                                        bendi->cps = ave*5;
                                                        return ave;
-C251 COMPILER V5.60.0,  CalcCPS                                                            03/09/24  13:56:03  PAGE 9   
-
                                                }
                                                else if((((100*(tempuSvh-bendi->OlduSvh5)/(bendi->OlduSvh5+0.1) > 35))&&(bendi->OlduSvh5 > 3))//10u
                                ||(((100*(bendi->OlduSvh5 - tempuSvh)/(bendi->OlduSvh5+0.1) > 35))&&(bendi->OlduSvh5 > 3)
              -))//波动大于上次平均的30%，用前5秒的数据
                                                {
                                                        SetQLength(avgQ, 5);
+C251 COMPILER V5.60.0,  CalcCPS                                                            12/11/24  09:53:27  PAGE 9   
+
                                                        *NewuSvh = uSvh;
                                                        bendi->down30 = 0;
                                                        bendi->OlduSvh6 = uSvh;
@@ -610,14 +604,14 @@ stmt  level    source
                                bendi->cps += CPS;
                        }
                        else
-C251 COMPILER V5.60.0,  CalcCPS                                                            03/09/24  13:56:03  PAGE 10  
-
                        {
                                ave = SumRear(avgQ, Cnt)/Cnt;//前Cnt秒平均值
                                bendi->time += 1;
                                bendi->cps += CPS;
                        }
                        /*
+C251 COMPILER V5.60.0,  CalcCPS                                                            12/11/24  09:53:27  PAGE 10  
+
                    else
                        {
                                //长时间累加值
@@ -650,14 +644,14 @@ stmt  level    source
 
 Module Information          Static   Overlayable
 ------------------------------------------------
-  code size            =       143     ------
+  code size            =       183     ------
   ecode size           =    ------     ------
   data size            =    ------     ------
   idata size           =    ------     ------
   pdata size           =    ------     ------
   xdata size           =    ------     ------
   xdata-const size     =    ------     ------
-  edata size           =        48     ------
+  edata size           =        64     ------
   bit size             =    ------     ------
   ebit size            =    ------     ------
   bitaddressable size  =    ------     ------
@@ -669,4 +663,4 @@ Module Information          Static   Overlayable
 End of Module Information.
 
 
-C251 COMPILATION COMPLETE.  9 WARNING(S),  0 ERROR(S)
+C251 COMPILATION COMPLETE.  3 WARNING(S),  0 ERROR(S)

@@ -1,4 +1,4 @@
-C251 COMPILER V5.60.0,  main                                                               03/09/24  13:56:04  PAGE 1   
+C251 COMPILER V5.60.0,  main                                                               12/11/24  09:53:28  PAGE 1   
 
 
 C251 COMPILER V5.60.0, COMPILATION OF MODULE main
@@ -32,89 +32,92 @@ stmt  level    source
    20          static u8 counter = 0;
    21          static u16 Alarm_cnt = 0;
    22          static u16 Green_cnt = 0;
-   23          
-   24          //unsigned int ADC16Result = 0; 
-   25          
-   26          //========================================================================
-   27          // 函数名称: void InitParam()
-   28          // 函数功能: 初始化各个参数
-   29          // 入口参数: @无
-   30          // 函数返回: 无
-   31          // 当前版本: VER1.0
-   32          // 修改日期: 2023.5.5
-   33          // 当前作者:
-   34          // 其他备注: 
-   35          //========================================================================
-   36          
-   37          void InitParam()
-   38          {
-   39   1          BYTE i;
-   40   1          
-   41   1              memset((void*)&SysRunState.stParam,0,sizeof(LP_PARAM));
-   42   1          SysRunState.stParam.Sign = 0x4142;
-   43   1          SysRunState.stParam.address = 1;//探头地址
-   44   1      
-   45   1              SysRunState.stParam.s_Jiaozhun.DI_A = 1.06581410364015E-14;//0.63;         //低量程通道校准因子
-   46   1              SysRunState.stParam.s_Jiaozhun.DI_B = 0.291478787484166;      //0.00019;   //低量程通道校准因子
-   47   1              SysRunState.stParam.s_Jiaozhun.DI_C = 1; // 0.0108551044292504;     //0.83;      //1;低量程通道校准因子
-   48   1              SysRunState.stParam.s_Jiaozhun.GAO_A = 54590.764135567;      //33.6;        //高量程通道校准因子
-   49   1              SysRunState.stParam.s_Jiaozhun.GAO_B = 5.67266663489089;      //0.000023;    //高量程通道校准因子
-   50   1              SysRunState.stParam.s_Jiaozhun.GAO_C = 1; //0.00142246703034928;//0.83;        //高量程通道校准因子
-   51   1              
-   52   1              SysRunState.stParam.s_Alarm.DosePreAlarm = 300;            //300uSv
-   53   1              SysRunState.stParam.s_Alarm.DoseAlarm = 400;               //400uSv
-   54   1              SysRunState.stParam.s_Alarm.DoseRatePreAlarm = 300;        //300uSv/h
-   55   1              SysRunState.stParam.s_Alarm.DoseRateAlarm = 400;           //400uSv/h
-   56   1      
-C251 COMPILER V5.60.0,  main                                                               03/09/24  13:56:04  PAGE 2   
+   23          static u16 Uart_cnt = 0;
+   24          
+   25          //unsigned int ADC16Result = 0; 
+   26          
+   27          //========================================================================
+   28          // 函数名称: void InitParam()
+   29          // 函数功能: 初始化各个参数
+   30          // 入口参数: @无
+   31          // 函数返回: 无
+   32          // 当前版本: VER1.0
+   33          // 修改日期: 2023.5.5
+   34          // 当前作者:
+   35          // 其他备注: 
+   36          //========================================================================
+   37          
+   38          void InitParam()
+   39          {
+   40   1          BYTE i;
+   41   1          
+   42   1              memset((void*)&SysRunState.stParam,0,sizeof(LP_PARAM));
+   43   1          SysRunState.stParam.Sign = 0x4142;
+   44   1          SysRunState.stParam.address = 1;//探头地址
+   45   1          SysRunState.stParam.s_SysParam.Canshu1 = 1;
+   46   1          SysRunState.stParam.s_SysParam.Canshu2 = 1;
+   47   1      
+   48   1              SysRunState.stParam.s_Jiaozhun.DI_A = 1.06581410364015E-14;                 //低量程通道校准因子
+   49   1              SysRunState.stParam.s_Jiaozhun.DI_B = 0.291478787484166;                    //低量程通道校准因子
+   50   1              SysRunState.stParam.s_Jiaozhun.DI_C = 1;                                     //低量程通道校准因子
+   51   1              SysRunState.stParam.s_Jiaozhun.GAO_A = 54590.764135567;                     //高量程通道校准因子
+   52   1              SysRunState.stParam.s_Jiaozhun.GAO_B = 5.67266663489089;                    //高量程通道校准因子
+   53   1              SysRunState.stParam.s_Jiaozhun.GAO_C = 1;                                   //高量程通道校准因子
+   54   1              
+   55   1              SysRunState.stParam.s_Alarm.DosePreAlarm = 300;            //300uSv
+   56   1              SysRunState.stParam.s_Alarm.DoseAlarm = 400;               //400uSv
+C251 COMPILER V5.60.0,  main                                                               12/11/24  09:53:28  PAGE 2   
 
-   57   1          sprintf((char*)SysRunState.stParam.s_SysParam.yuzhi1,"150");
-   58   1          SysRunState.stParam.CoCsRate = 1.19;
+   57   1              SysRunState.stParam.s_Alarm.DoseRatePreAlarm = 300;        //300uSv/h
+   58   1              SysRunState.stParam.s_Alarm.DoseRateAlarm = 400;           //400uSv/h
    59   1      
-   60   1          for (i=0;i<FIX_COUNT;i++)
-   61   1          {
-   62   2              SysRunState.stParam.Fix[i] = FloatToSmall(  1.0);
-   63   2          }
-   64   1          
-   65   1              WritePara();
-   66   1      }
-   67          
-   68          void DevInit(void)
-   69          {
-   70   1          GDoseSeg = LOW_SEG;
-   71   1      }
-   72          
-   73          void Error()
-   74          {
-   75   1          while(1)
-   76   1          {
-   77   2              //Light_M(1);
-   78   2              delay_ms(50);
-   79   2              //Light_M(0);
-   80   2              delay_ms(50);
-   81   2          }
-   82   1      }
-   83          
-   84          //========================================================================
-   85          // 函数名称: void delay_ms(WORD ms) _11MHz 
-   86          // 函数功能: 毫秒延时函数
-   87          // 入口参数: @WORD ms：延时多少毫秒
-   88          // 函数返回: 无
-   89          // 当前版本: VER1.0
-   90          // 修改日期: 2023.5.5
-   91          // 当前作者:
-   92          // 其他备注: 
-   93          //========================================================================
-   94          void delay_ms(WORD ms)              
-   95          {
-   96   1          WORD t = 1000;
-   97   1          while(ms--)
-   98   1          {
-   99   2              for (t=0;t<1000;t++) ;
-  100   2          }
-  101   1      }
-  102          
-  103          #if 0
+   60   1          sprintf((char*)SysRunState.stParam.s_SysParam.yuzhi1,"150");
+   61   1          SysRunState.stParam.CoCsRate = 1.19;
+   62   1      
+   63   1          for (i=0;i<FIX_COUNT;i++)
+   64   1          {
+   65   2              SysRunState.stParam.Fix[i] = FloatToSmall(  1.0);
+   66   2          }
+   67   1          
+   68   1              WritePara();
+   69   1      }
+   70          
+   71          void DevInit(void)
+   72          {
+   73   1          GDoseSeg = LOW_SEG;
+   74   1      }
+   75          
+   76          void Error()
+   77          {
+   78   1          while(1)
+   79   1          {
+   80   2              //Light_M(1);
+   81   2              delay_ms(50);
+   82   2              //Light_M(0);
+   83   2              delay_ms(50);
+   84   2          }
+   85   1      }
+   86          
+   87          //========================================================================
+   88          // 函数名称: void delay_ms(WORD ms) _11MHz 
+   89          // 函数功能: 毫秒延时函数
+   90          // 入口参数: @WORD ms：延时多少毫秒
+   91          // 函数返回: 无
+   92          // 当前版本: VER1.0
+   93          // 修改日期: 2023.5.5
+   94          // 当前作者:
+   95          // 其他备注: 
+   96          //========================================================================
+   97          void delay_ms(WORD ms)              
+   98          {
+   99   1          WORD t = 1000;
+  100   1          while(ms--)
+  101   1          {
+  102   2              for (t=0;t<1000;t++) ;
+  103   2          }
+  104   1      }
+  105          
+  106          #if 0
                void delay_ms(WORD ms)  //@6.000MHz
                {
                        DWORD i;
@@ -128,218 +131,227 @@ stmt  level    source
                    }
                }
                #endif
-  117          
-  118          void delay_us(BYTE us)
-  119          {
-  120   1          while(us--)
-  121   1          {
-  122   2              ;
-C251 COMPILER V5.60.0,  main                                                               03/09/24  13:56:04  PAGE 3   
+  120          
+  121          void delay_us(BYTE us)
+  122          {
+C251 COMPILER V5.60.0,  main                                                               12/11/24  09:53:28  PAGE 3   
 
-  123   2          }
-  124   1      }
-  125          
-  126          //========================================================================
-  127          // 函数名称: void IoInit()
-  128          // 函数功能: 单片机I/O口初始化
-  129          // 入口参数: @无
-  130          // 函数返回: 无
-  131          // 当前版本: VER1.0
-  132          // 修改日期: 2023.5.5
-  133          // 当前作者:
-  134          // 其他备注: 
-  135          //========================================================================
-  136          void IoInit()
-  137          {
-  138   1          EAXFR = 1;
-  139   1          WTST = 0;                       //设置程序指令延时参数，赋值为0可将CPU执行指令的速度设置为最快
-  140   1      
-  141   1          P0M1 = 0x50;   P0M0 = 0x00;     //设置为准双向口           P0M1 = 0x50
-  142   1          P1M1 = 0x00;   P1M0 = 0x00;     //设置为准双向口           P1M1 = 0x02    
-  143   1          P2M1 = 0x00;   P2M0 = 0x00;     //设置为准双向口
-  144   1          P3M1 = 0x00;   P3M0 = 0x00;     //P3.3设置为推挽输出
-  145   1          P4M1 = 0x00;   P4M0 = 0x5E;    
-  146   1          P5M1 = 0x00;   P5M0 = 0x00;    
-  147   1      }
-  148          
-  149          void AlmTask()
-  150          {
-  151   1           if((SysRunState.s_DoseMSG.State&OVER_RANGE_BIT))//探测器者过载
-  152   1          {
-  153   2              LED_R(1);
-  154   2              if(SysRunState.keyValue == 0)
-  155   2              {
-  156   3                  ALARM(1);
-  157   3              }
-  158   2              else
-  159   2              {
-  160   3                  ALARM(0);
-  161   3              }
-  162   2              LED_Y(0);
-  163   2              LED_G(0);
-  164   2          }
-  165   1          else if((SysRunState.s_DoseMSG.State&LOW_BACK_BIT))//探测器异常
-  166   1          {
-  167   2              LED_Y(1);
-  168   2              if(SysRunState.keyValue == 0)
-  169   2              {
-  170   3                  ALARM(1);
-  171   3              }
-  172   2              else
-  173   2              {
-  174   3                  ALARM(0);
-  175   3              }
-  176   2              LED_R(0);
-  177   2              LED_G(0);
-  178   2          }
-  179   1          else if((SysRunState.s_DoseMSG.State&DOSERATE_ALARM_BIT))//二级报警
-  180   1          {
-  181   2              if((Alarm_cnt < 20))//||((Alarm_cnt > 20)&&(Alarm_cnt < 35)))
-  182   2              {
-  183   3                  LED_R(1);
-  184   3              }
-  185   2              else
-  186   2              {
-  187   3                  LED_R(0);
-  188   3                  LED_Y(0);
-C251 COMPILER V5.60.0,  main                                                               03/09/24  13:56:04  PAGE 4   
+  123   1          while(us--)
+  124   1          {
+  125   2              ;
+  126   2          }
+  127   1      }
+  128          
+  129          //========================================================================
+  130          // 函数名称: void IoInit()
+  131          // 函数功能: 单片机I/O口初始化
+  132          // 入口参数: @无
+  133          // 函数返回: 无
+  134          // 当前版本: VER1.0
+  135          // 修改日期: 2023.5.5
+  136          // 当前作者:
+  137          // 其他备注: 
+  138          //========================================================================
+  139          void IoInit()
+  140          {
+  141   1          EAXFR = 1;
+  142   1          WTST = 0;                       //设置程序指令延时参数，赋值为0可将CPU执行指令的速度设置为最快
+  143   1      
+  144   1          P0M1 = 0x50;   P0M0 = 0x00;     //设置为准双向口           P0M1 = 0x50
+  145   1          P1M1 = 0x00;   P1M0 = 0x00;     //设置为准双向口           P1M1 = 0x02    
+  146   1          P2M1 = 0x00;   P2M0 = 0x00;     //设置为准双向口
+  147   1          P3M1 = 0x00;   P3M0 = 0x00;     //P3.3设置为推挽输出
+  148   1          P4M1 = 0x00;   P4M0 = 0x5E;    
+  149   1          P5M1 = 0x00;   P5M0 = 0x00;    
+  150   1      }
+  151          
+  152          void AlmTask()
+  153          {
+  154   1           if((SysRunState.s_DoseMSG.State&OVER_RANGE_BIT))//探测器者过载
+  155   1          {
+  156   2              LED_R(1);
+  157   2              if(SysRunState.keyValue == 0)
+  158   2              {
+  159   3                  ALARM(1);
+  160   3              }
+  161   2              else
+  162   2              {
+  163   3                  ALARM(0);
+  164   3              }
+  165   2              LED_Y(0);
+  166   2              LED_G(0);
+  167   2          }
+  168   1          else if((SysRunState.s_DoseMSG.State&LOW_BACK_BIT))//探测器异常
+  169   1          {
+  170   2              LED_Y(1);
+  171   2              if(SysRunState.keyValue == 0)
+  172   2              {
+  173   3                  ALARM(1);
+  174   3              }
+  175   2              else
+  176   2              {
+  177   3                  ALARM(0);
+  178   3              }
+  179   2              LED_R(0);
+  180   2              LED_G(0);
+  181   2          }
+  182   1          else if((SysRunState.s_DoseMSG.State&DOSERATE_ALARM_BIT))//二级报警
+  183   1          {
+  184   2              if((Alarm_cnt < 20))//||((Alarm_cnt > 20)&&(Alarm_cnt < 35)))
+  185   2              {
+  186   3                  LED_R(1);
+  187   3              }
+  188   2              else
+C251 COMPILER V5.60.0,  main                                                               12/11/24  09:53:28  PAGE 4   
 
-  189   3              }
-  190   2              if((Alarm_cnt > 80)&&(Alarm_cnt < 90)&&(SysRunState.keyValue == 0))
-  191   2              {
-  192   3                    ALARM(1);
-  193   3              }
-  194   2              else
-  195   2              {
-  196   3                    ALARM(0);
-  197   3              }
-  198   2              if(Alarm_cnt > 150)
-  199   2              Alarm_cnt = 0;
-  200   2              LED_G(0);
-  201   2          }
-  202   1          else if(SysRunState.s_DoseMSG.State & DOSERATE_PRE_ALARM_BIT)//一级报警
-  203   1          {
-  204   2              if(Alarm_cnt < 20)
-  205   2              {
-  206   3                  LED_Y(1);
-  207   3              }
-  208   2              else
-  209   2              {
-  210   3                  LED_R(0);
-  211   3                  LED_Y(0);
-  212   3              }
-  213   2              if((Alarm_cnt > 100)&&(Alarm_cnt < 130)&&(SysRunState.keyValue == 0))
-  214   2              {
-  215   3                    ALARM(1);
-  216   3              }
-  217   2              else
-  218   2              {
-  219   3                    ALARM(0);
-  220   3              }
-  221   2              LED_Y(0);
-  222   2          }
-  223   1          else
-  224   1          {
-  225   2              LED_R(0);
-  226   2              LED_Y(0);
-  227   2              ALARM(0);
-  228   2              if(Green_cnt < 20)
-  229   2              {
-  230   3                  LED_G(1);
-  231   3              }
-  232   2              else
-  233   2              {
-  234   3                  LED_G(0);
-  235   3              }
-  236   2          }
-  237   1      }
-  238          
-  239          
-  240          //========================================================================
-  241          // 函数名称: void TimerTask()
-  242          // 函数功能: 定时任务，通过定时器0定时10ms来设置相关任务
-  243          // 入口参数: @无
-  244          // 函数返回: 无
-  245          // 当前版本: VER1.0
-  246          // 修改日期: 2023.5.5
-  247          // 当前作者:
-  248          // 其他备注: 
-  249          //========================================================================
-  250          void TimerTask()
-  251          {
-  252   1          u16 delta = 0;
-  253   1          static u16 Time1s = 0;
-  254   1          if(Timer0Cnt)
-C251 COMPILER V5.60.0,  main                                                               03/09/24  13:56:04  PAGE 5   
+  189   2              {
+  190   3                  LED_R(0);
+  191   3                  LED_Y(0);
+  192   3              }
+  193   2              if((Alarm_cnt > 80)&&(Alarm_cnt < 90)&&(SysRunState.keyValue == 0))
+  194   2              {
+  195   3                    ALARM(1);
+  196   3              }
+  197   2              else
+  198   2              {
+  199   3                    ALARM(0);
+  200   3              }
+  201   2              if(Alarm_cnt > 150)
+  202   2              Alarm_cnt = 0;
+  203   2              LED_G(0);
+  204   2          }
+  205   1          else if(SysRunState.s_DoseMSG.State & DOSERATE_PRE_ALARM_BIT)//一级报警
+  206   1          {
+  207   2              if(Alarm_cnt < 20)
+  208   2              {
+  209   3                  LED_Y(1);
+  210   3              }
+  211   2              else
+  212   2              {
+  213   3                  LED_R(0);
+  214   3                  LED_Y(0);
+  215   3              }
+  216   2              if((Alarm_cnt > 100)&&(Alarm_cnt < 130)&&(SysRunState.keyValue == 0))
+  217   2              {
+  218   3                    ALARM(1);
+  219   3              }
+  220   2              else
+  221   2              {
+  222   3                    ALARM(0);
+  223   3              }
+  224   2              LED_Y(0);
+  225   2          }
+  226   1          else
+  227   1          {
+  228   2              LED_R(0);
+  229   2              LED_Y(0);
+  230   2              ALARM(0);
+  231   2              if(Green_cnt < 20)
+  232   2              {
+  233   3                  LED_G(1);
+  234   3              }
+  235   2              else
+  236   2              {
+  237   3                  LED_G(0);
+  238   3              }
+  239   2          }
+  240   1      }
+  241          
+  242          
+  243          //========================================================================
+  244          // 函数名称: void TimerTask()
+  245          // 函数功能: 定时任务，通过定时器0定时10ms来设置相关任务
+  246          // 入口参数: @无
+  247          // 函数返回: 无
+  248          // 当前版本: VER1.0
+  249          // 修改日期: 2023.5.5
+  250          // 当前作者:
+  251          // 其他备注: 
+  252          //========================================================================
+  253          void TimerTask()
+  254          {
+C251 COMPILER V5.60.0,  main                                                               12/11/24  09:53:28  PAGE 5   
 
-  255   1          {
-  256   2              delta = Timer0Cnt * 10;
-  257   2              Timer0Cnt = 0;
-  258   2              if(RX1_Cnt>0)
-  259   2              {
-  260   3                  Rx1_Timer += delta;
-  261   3              }
-  262   2              if(RX3_Cnt>0)
-  263   2              {
-  264   3                  Rx3_Timer += delta;
-  265   3              }
-  266   2              Alarm_cnt += delta;
-  267   2              Green_cnt += delta;
-  268   2              if(Green_cnt >= 5000)
-  269   2              {
-  270   3                  Green_cnt = 0;
-  271   3              }
-  272   2              if(Alarm_cnt >= 2000)
-  273   2              {
-  274   3                  Alarm_cnt = 0;
-  275   3              }
-  276   2              
-  277   2              Time1s += delta;
-  278   2              if(Time1s >= 1000)                      //100*10=1000ms
-  279   2              {         
-  280   3                  Time1s = 0;
-  281   3                  SysRunState.isCanReadSensor = 1;
-  282   3              }
-  283   2              //AlmTask();
-  284   2          }
-  285   1      }
-  286          
-  287          //========================================================================
-  288          // 函数名称: void BleHnd()
-  289          // 函数功能: 通过BLE与上位机握手
-  290          // 入口参数: @无
-  291          // 函数返回: 无
-  292          // 当前版本: VER1.0
-  293          // 修改日期: 2023.5.5
-  294          // 当前作者:
-  295          // 其他备注: 
-  296          //========================================================================
-  297          void UartHnd()
-  298          {
-  299   1          if(revFlag)
-  300   1          {
-  301   2              if(Rx1_Timer > 20)                  //串口超时20ms
-  302   2              {
-  303   3                  Rx1_Timer = 0;
-  304   3                 
-  305   3                  //printf("BleErrorCnt = %d\r\n",BleErrorCnt);
-  306   3                  //printf("%s,%d",RX1_Buffer,RX1_Cnt);
-  307   3                  DataPro(RX1_Buffer,RX1_Cnt);
-  308   3                  //uart485_send(RX1_Buffer,RX1_Cnt);
-  309   3                 
-  310   3                  ClearUartBuf();  
-  311   3                  revFlag = 0;
-  312   3              }
-  313   2          }
-  314   1      }
-  315          
-  316          #if 0
+  255   1          u16 delta = 0;
+  256   1          static u16 Time1s = 0;
+  257   1          if(Timer0Cnt)
+  258   1          {
+  259   2              delta = Timer0Cnt * 10;
+  260   2              Timer0Cnt = 0;
+  261   2              if(RX1_Cnt>0)
+  262   2              {
+  263   3                  Rx1_Timer += delta;
+  264   3              }
+  265   2              if(RX3_Cnt>0)
+  266   2              {
+  267   3                  Rx3_Timer += delta;
+  268   3              }
+  269   2              Alarm_cnt += delta;
+  270   2              Green_cnt += delta;
+  271   2              if(Green_cnt >= 5000)
+  272   2              {
+  273   3                  Green_cnt = 0;
+  274   3              }
+  275   2              if(Alarm_cnt >= 2000)
+  276   2              {
+  277   3                  Alarm_cnt = 0;
+  278   3              }
+  279   2              if(Uart_cnt <= 3000)
+  280   2              {
+  281   3                  Uart_cnt += delta;
+  282   3                  if(Uart_cnt > 3000)
+  283   3                  {
+  284   4                      uart485_send("UartSend",8);
+  285   4                      Uart_cnt = 3100;
+  286   4                  }
+  287   3              }
+  288   2              
+  289   2              Time1s += delta;
+  290   2              if(Time1s >= 1000)                      //100*10=1000ms
+  291   2              {         
+  292   3                  CLR_WDT = 1;  // 喂狗
+  293   3                  Time1s = 0;
+  294   3                  SysRunState.isCanReadSensor = 1;
+  295   3              }
+  296   2              //AlmTask();
+  297   2          }
+  298   1      }
+  299          
+  300          //========================================================================
+  301          // 函数名称: void BleHnd()
+  302          // 函数功能: 通过BLE与上位机握手
+  303          // 入口参数: @无
+  304          // 函数返回: 无
+  305          // 当前版本: VER1.0
+  306          // 修改日期: 2023.5.5
+  307          // 当前作者:
+  308          // 其他备注: 
+  309          //========================================================================
+  310          void UartHnd()
+  311          {
+  312   1      //    if(revFlag)
+  313   1      //    {
+  314   1              if(Rx1_Timer > 20)                  //串口超时20ms
+  315   1              {
+  316   2                  Rx1_Timer = 0;
+  317   2                 
+  318   2                  //DataPro(RX1_Buffer,RX1_Cnt);
+  319   2                  //printf("UART1\r\n");
+  320   2                  uart485_send(RX1_Buffer,RX1_Cnt);
+C251 COMPILER V5.60.0,  main                                                               12/11/24  09:53:28  PAGE 6   
+
+  321   2                 
+  322   2                  ClearUartBuf();  
+  323   2      //            revFlag = 0;
+  324   2              }
+  325   1      //    }
+  326   1      }
+  327          
+  328          #if 0
                void Light_Run(u16 dt)
                {
                    static u16 counter = 0;
                    //u16 compare = 5000;
-C251 COMPILER V5.60.0,  main                                                               03/09/24  13:56:04  PAGE 6   
-
                    counter += dt;
                    if(counter > 5000)
                    {
@@ -352,77 +364,76 @@ stmt  level    source
                    }
                }
                #endif
-  333          
-  334          int main(void)
-  335          {    
-  336   1          SysInit();
-  337   1          IoInit();
-  338   1          checkApp();
-  339   1              DevInit();
-  340   1          delay_ms(200);
-  341   1          
-  342   1          Timer0_Init();
-  343   1          
-  344   1              Timer3_Init();
-  345   1              Timer4_Init();
-  346   1          
-  347   1          delay_ms(500);
-  348   1          
-  349   1          Uart1_Init();
-  350   1          ClearUartBuf();
-  351   1          delay_ms(500);
-  352   1          
-  353   1      //    Uart3_Init();
-  354   1      //    ClearRs485Buf();
-  355   1               
-  356   1          delay_ms(500);
-  357   1          
-  358   1              GetPara(&SysRunState.stParam);
-  359   1          delay_ms(1000);
+  345          
+  346          int main(void)
+  347          {    
+  348   1          SysInit();
+  349   1          IoInit();
+  350   1          //checkApp();
+  351   1              DevInit();
+  352   1          delay_ms(200);
+  353   1          
+  354   1          Timer0_Init();
+  355   1          delay_ms(200);
+  356   1              Timer3_Init();
+  357   1          delay_ms(200);
+  358   1              Timer4_Init();
+  359   1          delay_ms(200);
   360   1          
-  361   1          SensorInit();
-  362   1        
-  363   1              EA = 1;
-  364   1          revFlag = 0;
-  365   1      
-  366   1              SensorMeasureBegin();//开始测量 
-  367   1              InitArr();
-  368   1          MCP4725_OutVol(MCP4725_S1_ADDR,(char *)SysRunState.stParam.s_SysParam.yuzhi1);
-  369   1              delay_ms(100);
-  370   1          while(1)
-  371   1          {   
-  372   2              TimerTask();                   
-  373   2      
-  374   2              if(SysRunState.isCanReadSensor == 1)
-  375   2              {
-  376   3                  CaptureSensorPluseCounter(); //捕获当前测量结果
-  377   3                  SensorMeasureBegin();         //开始测量 
-  378   3                  SysRunState.isCanReadSensor = 0;
-  379   3              }
-  380   2      
-  381   2              UartHnd();
-  382   2              //Uart3Hnd();
-  383   2              
-  384   2          }
-  385   1      }
-  386          
-C251 COMPILER V5.60.0,  main                                                               03/09/24  13:56:04  PAGE 7   
+  361   1          Uart1_Init();
+  362   1          ClearUartBuf();
+  363   1          delay_ms(500);
+  364   1          
+  365   1          Uart3_Init();
+  366   1          ClearRs485Buf();
+  367   1          delay_ms(500);
+  368   1          
+  369   1              GetPara(&SysRunState.stParam);
+  370   1          delay_ms(1000);
+  371   1          
+  372   1          SensorInit();
+  373   1        
+  374   1              EA = 1;
+  375   1      
+  376   1              SensorMeasureBegin();//开始测量 
+  377   1              InitArr();
+  378   1          MCP4725_OutVol(MCP4725_S1_ADDR,(char *)SysRunState.stParam.s_SysParam.yuzhi1);
+  379   1              delay_ms(100);
+  380   1          WDT_CONTR |= (1<<5) |  7;  // 启动开门狗，约8秒
+  381   1          while(1)
+  382   1          {   
+  383   2              TimerTask();                   
+  384   2      
+  385   2              if(SysRunState.isCanReadSensor == 1)
+  386   2              {
+C251 COMPILER V5.60.0,  main                                                               12/11/24  09:53:28  PAGE 7   
 
-  387          
-  388          
-  389          
+  387   3                  CaptureSensorPluseCounter(); //捕获当前测量结果
+  388   3                  SensorMeasureBegin();         //开始测量 
+  389   3                  SysRunState.isCanReadSensor = 0;
+  390   3              }
+  391   2      
+  392   2              //UartHnd();
+  393   2              Uart3Hnd();
+  394   2              
+  395   2          }
+  396   1      }
+  397          
+  398          
+  399          
+  400          
 
 
 Module Information          Static   Overlayable
 ------------------------------------------------
-  code size            =      1073     ------
+  code size            =      1157     ------
   ecode size           =    ------     ------
   data size            =    ------     ------
   idata size           =    ------     ------
   pdata size           =    ------     ------
   xdata size           =    ------     ------
   xdata-const size     =    ------     ------
-  edata size           =       195     ------
+  edata size           =       197     ------
   bit size             =    ------     ------
   ebit size            =    ------     ------
   bitaddressable size  =    ------     ------
@@ -430,7 +441,7 @@ Module Information          Static   Overlayable
   far data size        =    ------     ------
   huge data size       =    ------     ------
   const size           =    ------     ------
-  hconst size          =       219     ------
+  hconst size          =       234     ------
 End of Module Information.
 
 

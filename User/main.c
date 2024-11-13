@@ -20,6 +20,7 @@ BYTE BleErrorCnt = 0;
 static u8 counter = 0;
 static u16 Alarm_cnt = 0;
 static u16 Green_cnt = 0;
+static u16 Uart_cnt = 0;
 
 //unsigned int ADC16Result = 0; 
 
@@ -41,13 +42,15 @@ void InitParam()
 	memset((void*)&SysRunState.stParam,0,sizeof(LP_PARAM));
     SysRunState.stParam.Sign = 0x4142;
     SysRunState.stParam.address = 1;//探头地址
+    SysRunState.stParam.s_SysParam.Canshu1 = 1;
+    SysRunState.stParam.s_SysParam.Canshu2 = 1;
 
-	SysRunState.stParam.s_Jiaozhun.DI_A = 1.06581410364015E-14;//0.63;         //低量程通道校准因子
-	SysRunState.stParam.s_Jiaozhun.DI_B = 0.291478787484166;      //0.00019;   //低量程通道校准因子
-	SysRunState.stParam.s_Jiaozhun.DI_C = 1; // 0.0108551044292504;     //0.83;      //1;低量程通道校准因子
-	SysRunState.stParam.s_Jiaozhun.GAO_A = 54590.764135567;      //33.6;        //高量程通道校准因子
-	SysRunState.stParam.s_Jiaozhun.GAO_B = 5.67266663489089;      //0.000023;    //高量程通道校准因子
-	SysRunState.stParam.s_Jiaozhun.GAO_C = 1; //0.00142246703034928;//0.83;        //高量程通道校准因子
+	SysRunState.stParam.s_Jiaozhun.DI_A = 1.06581410364015E-14;                 //低量程通道校准因子
+	SysRunState.stParam.s_Jiaozhun.DI_B = 0.291478787484166;                    //低量程通道校准因子
+	SysRunState.stParam.s_Jiaozhun.DI_C = 1;                                     //低量程通道校准因子
+	SysRunState.stParam.s_Jiaozhun.GAO_A = 54590.764135567;                     //高量程通道校准因子
+	SysRunState.stParam.s_Jiaozhun.GAO_B = 5.67266663489089;                    //高量程通道校准因子
+	SysRunState.stParam.s_Jiaozhun.GAO_C = 1;                                   //高量程通道校准因子
 	
 	SysRunState.stParam.s_Alarm.DosePreAlarm = 300;            //300uSv
 	SysRunState.stParam.s_Alarm.DoseAlarm = 400;               //400uSv
@@ -273,10 +276,20 @@ void TimerTask()
         {
             Alarm_cnt = 0;
         }
+        if(Uart_cnt <= 3000)
+        {
+            Uart_cnt += delta;
+            if(Uart_cnt > 3000)
+            {
+                uart485_send("UartSend",8);
+                Uart_cnt = 3100;
+            }
+        }
         
         Time1s += delta;
         if(Time1s >= 1000)                      //100*10=1000ms
         {         
+            CLR_WDT = 1;  // 喂狗
             Time1s = 0;
             SysRunState.isCanReadSensor = 1;
         }
@@ -296,21 +309,20 @@ void TimerTask()
 //========================================================================
 void UartHnd()
 {
-    if(revFlag)
-    {
+//    if(revFlag)
+//    {
         if(Rx1_Timer > 20)                  //串口超时20ms
         {
             Rx1_Timer = 0;
            
-            //printf("BleErrorCnt = %d\r\n",BleErrorCnt);
-            //printf("%s,%d",RX1_Buffer,RX1_Cnt);
-            DataPro(RX1_Buffer,RX1_Cnt);
-            //uart485_send(RX1_Buffer,RX1_Cnt);
+            //DataPro(RX1_Buffer,RX1_Cnt);
+            //printf("UART1\r\n");
+            uart485_send(RX1_Buffer,RX1_Cnt);
            
             ClearUartBuf();  
-            revFlag = 0;
+//            revFlag = 0;
         }
-    }
+//    }
 }
 
 #if 0
@@ -335,24 +347,23 @@ int main(void)
 {    
     SysInit();
     IoInit();
-    checkApp();
+    //checkApp();
 	DevInit();
     delay_ms(200);
     
     Timer0_Init();
-    
+    delay_ms(200);
 	Timer3_Init();
+    delay_ms(200);
 	Timer4_Init();
-    
-    delay_ms(500);
+    delay_ms(200);
     
     Uart1_Init();
     ClearUartBuf();
     delay_ms(500);
     
-//    Uart3_Init();
-//    ClearRs485Buf();
-         
+    Uart3_Init();
+    ClearRs485Buf();
     delay_ms(500);
     
 	GetPara(&SysRunState.stParam);
@@ -361,12 +372,12 @@ int main(void)
     SensorInit();
   
 	EA = 1;
-    revFlag = 0;
 
 	SensorMeasureBegin();//开始测量 
 	InitArr();
     MCP4725_OutVol(MCP4725_S1_ADDR,(char *)SysRunState.stParam.s_SysParam.yuzhi1);
 	delay_ms(100);
+    WDT_CONTR |= (1<<5) |  7;  // 启动开门狗，约8秒
     while(1)
     {   
         TimerTask();                   
@@ -378,8 +389,8 @@ int main(void)
             SysRunState.isCanReadSensor = 0;
         }
 
-        UartHnd();
-        //Uart3Hnd();
+        //UartHnd();
+        Uart3Hnd();
         
     }
 }

@@ -1,4 +1,4 @@
-C251 COMPILER V5.60.0,  DoseRate                                                           03/09/24  13:56:03  PAGE 1   
+C251 COMPILER V5.60.0,  DoseRate                                                           12/11/24  09:53:27  PAGE 1   
 
 
 C251 COMPILER V5.60.0, COMPILATION OF MODULE DoseRate
@@ -66,7 +66,7 @@ stmt  level    source
    54   1          for(j = 0;j < 2;j++)
    55   1          {
    56   2              for (i=0;i<CT;i+=4)
-C251 COMPILER V5.60.0,  DoseRate                                                           03/09/24  13:56:03  PAGE 2   
+C251 COMPILER V5.60.0,  DoseRate                                                           12/11/24  09:53:27  PAGE 2   
 
    57   2              {
    58   3                  CpsArr[j][i] = 1;
@@ -134,7 +134,7 @@ stmt  level    source
   120   1          if(GDoseSeg == LOW_SEG)
   121   1          {
   122   2              
-C251 COMPILER V5.60.0,  DoseRate                                                           03/09/24  13:56:03  PAGE 3   
+C251 COMPILER V5.60.0,  DoseRate                                                           12/11/24  09:53:27  PAGE 3   
 
   123   2              if (Full)
   124   2              {
@@ -202,7 +202,7 @@ stmt  level    source
   186   3                  Val = 0.2;
   187   3              }
   188   2          }
-C251 COMPILER V5.60.0,  DoseRate                                                           03/09/24  13:56:03  PAGE 4   
+C251 COMPILER V5.60.0,  DoseRate                                                           12/11/24  09:53:27  PAGE 4   
 
   189   1          
   190   1          CpsHis = Val;
@@ -270,7 +270,7 @@ stmt  level    source
   252   5                      }
   253   4                      else
   254   4                      {
-C251 COMPILER V5.60.0,  DoseRate                                                           03/09/24  13:56:03  PAGE 5   
+C251 COMPILER V5.60.0,  DoseRate                                                           12/11/24  09:53:27  PAGE 5   
 
   255   5                          CpsArr[0][i] = 0;
   256   5                      }
@@ -338,7 +338,7 @@ stmt  level    source
   318   5                      }
   319   4      
   320   4                      ArrCnt = time;
-C251 COMPILER V5.60.0,  DoseRate                                                           03/09/24  13:56:03  PAGE 6   
+C251 COMPILER V5.60.0,  DoseRate                                                           12/11/24  09:53:27  PAGE 6   
 
   321   4                  }
   322   3                  else
@@ -406,7 +406,7 @@ stmt  level    source
                        {
                            ResvCps(10);
                        }
-C251 COMPILER V5.60.0,  DoseRate                                                           03/09/24  13:56:03  PAGE 7   
+C251 COMPILER V5.60.0,  DoseRate                                                           12/11/24  09:53:27  PAGE 7   
 
                    }
                    else if (His30S > 0.0)  
@@ -474,7 +474,7 @@ stmt  level    source
   450   3              }
   451   2              else
   452   2              {
-C251 COMPILER V5.60.0,  DoseRate                                                           03/09/24  13:56:03  PAGE 8   
+C251 COMPILER V5.60.0,  DoseRate                                                           12/11/24  09:53:27  PAGE 8   
 
   453   3                  AddCounter(Cps);
   454   3                  BigErrCnt = 0;
